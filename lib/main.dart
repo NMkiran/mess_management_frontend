@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'theme/app_theme.dart';
-import 'views/auth/login_page.dart';
-import 'provider/member_provider.dart';
-import 'provider/payment_provider.dart';
+
 import 'provider/auth_provider.dart';
 import 'provider/expense_provider.dart';
+import 'provider/member_provider.dart';
+import 'provider/payment_provider.dart';
+import 'theme/app_theme.dart';
+import 'views/auth/login_page.dart';
 
 void main() async {
   try {
@@ -47,7 +48,8 @@ class MyApp extends StatelessWidget {
         home: const LoginPage(),
         builder: (context, child) {
           return MediaQuery(
-            data: MediaQuery.of(context).copyWith(textScaler:const TextScaler.linear(1.0)),
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(1.0)),
             child: child!,
           );
         },

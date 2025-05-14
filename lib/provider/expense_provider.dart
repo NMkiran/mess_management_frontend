@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'dart:convert';
+
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+
 import '../models/expense_model.dart';
 
 class ExpenseProvider extends ChangeNotifier {
@@ -45,8 +47,8 @@ class ExpenseProvider extends ChangeNotifier {
         return false;
       }
 
-      const url = 'http://10.0.2.2:3000/expenses'; // For Android Emulator
-      // final url = 'http://localhost:3000/expenses'; // For iOS Simulator
+      // const url = 'http://10.0.2.2:3000/expenses'; // For Android Emulator
+      const url = 'http://localhost:3000/expenses'; // For iOS Simulator
       // final url = 'http://192.168.1.100:3000/expenses'; // For physical device
 
       debugPrint('Making API request to: $url');

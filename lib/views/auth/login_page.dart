@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../theme/app_colors.dart';
+
 import '../../provider/auth_provider.dart';
+import '../../theme/app_colors.dart';
 import '../main_section/main_section.dart';
 
 class LoginPage extends StatefulWidget {
@@ -21,15 +22,15 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       debugPrint('Form validated, attempting login');
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
+      print("Username: ${_usernameController.text}");
+      print("Password: ${_passwordController.text}");
       try {
         final success = await authProvider.login(
-          _usernameController.text,
-          _passwordController.text,
-          context,
+          username: _usernameController.text,
+          password: _passwordController.text,
         );
 
-        debugPrint('Login result: $success');
+        // debugPrint('Login result: $success');
 
         if (success && mounted) {
           debugPrint('Login successful, navigating to MainSection');

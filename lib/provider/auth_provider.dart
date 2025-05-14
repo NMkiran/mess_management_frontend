@@ -1,8 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'member_provider.dart';
-import 'expense_provider.dart';
+import 'package:mess_management/dio/api_urls.dart';
+import 'package:mess_management/dio/dio_client.dart';
 
 class AuthProvider with ChangeNotifier {
   final Dio _dio = Dio();
@@ -15,48 +14,26 @@ class AuthProvider with ChangeNotifier {
   String? get token => _token;
 
   Future<bool> login(
-      String username, String password, BuildContext context) async {
+      {required String username, required String password}) async {
     _isLoading = true;
-    _error = null;
     notifyListeners();
-
     try {
-      const url = 'http://10.0.2.2:3000/auth/login'; // For Android Emulator
-      // final url = 'http://localhost:3000/auth/login'; // For iOS Simulator
-      // final url = 'http://192.168.1.100:3000/auth/login'; // For physical device
-
-      debugPrint('Making API request to: $url');
-
-      final response = await _dio.post(
-        url,
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        ),
-        data: {
+      Map response = await dio(
+        method: 'POST',
+        endPoint: ApiUrls().login,
+        body: {
           'username': username,
           'password': password,
         },
       );
-
-      debugPrint('Response received with status: ${response.statusCode}');
-      debugPrint('Response data: ${response.data}');
-
-      if (response.statusCode == 200) {
-        _token = response.data['token'];
+      if (response['statusCode'] == 200) {
+        _token = response['token'];
         _isLoading = false;
         notifyListeners();
 
-        // Share token with MemberProvider and ExpenseProvider
-        if (context.mounted) {
-          Provider.of<MemberProvider>(context, listen: false).setToken(_token!);
-          Provider.of<ExpenseProvider>(context, listen: false)
-              .setToken(_token!);
-        }
         return true;
       } else {
-        _error = response.data['message'] ?? 'Login failed';
+        _error = response['message'] ?? 'Login failed';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -88,14 +65,11 @@ class AuthProvider with ChangeNotifier {
       }
       _error = errorMessage;
       _isLoading = false;
-      debugPrint('DioException occurred: $errorMessage');
-      debugPrint('Error details: ${e.toString()}');
       notifyListeners();
       return false;
     } catch (e) {
       _error = 'An unexpected error occurred: $e';
       _isLoading = false;
-      debugPrint('Unexpected error: $e');
       notifyListeners();
       return false;
     }
