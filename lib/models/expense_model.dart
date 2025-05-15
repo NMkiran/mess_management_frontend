@@ -28,11 +28,11 @@ class ExpenseModel {
 
   factory ExpenseModel.fromJson(Map<String, dynamic> json) {
     return ExpenseModel(
-      id: json['id'],
-      description: json['description'],
-      amount: json['amount'].toDouble(),
-      date: DateTime.parse(json['date']),
-      category: json['category'],
+      id: json['id'] ?? '',
+      description: json['description'] ?? '',
+      amount: json['amount'] ?? 0.0,
+      date: DateTime.parse(json['date'] ?? DateTime.now().toIso8601String()),
+      category: json['category'] ?? '',
       subCategory: json['subCategory'] ?? '',
     );
   }

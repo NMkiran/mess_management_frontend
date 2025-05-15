@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 
-// Tab screens
-import 'home/home_screen.dart';
 import 'attendance/attendance_screen.dart';
 import 'history/history_screen.dart';
-import 'profile/profile_screen.dart';
+// Tab screens
+import 'home/home_screen.dart';
 import 'members/members_screen.dart';
-
-// Providers
-import '../../../provider/attendance_provider.dart';
-import '../../../provider/member_provider.dart';
-import '../../../provider/expense_provider.dart';
-import '../../../provider/payment_provider.dart';
-import '../../../provider/profile_provider.dart';
+import 'profile/profile_screen.dart';
 
 class MainSectionProvider extends ChangeNotifier {
   static const String _boxName = 'mainSection';
@@ -47,17 +40,7 @@ class MainSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => MainSectionProvider()),
-        ChangeNotifierProvider(create: (_) => AttendanceProvider()),
-        ChangeNotifierProvider(create: (_) => MemberProvider()),
-        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
-        ChangeNotifierProvider(create: (_) => PaymentProvider()),
-        ChangeNotifierProvider(create: (_) => ProfileProvider()),
-      ],
-      child: const MainSectionView(),
-    );
+    return const MainSectionView();
   }
 }
 
@@ -75,6 +58,8 @@ class MainSectionView extends StatelessWidget {
               HomeScreen(),
               AttendanceScreen(),
               MembersScreen(),
+              // MemberProfileScreen(),
+
               HistoryScreen(),
               ProfileScreen(),
             ],

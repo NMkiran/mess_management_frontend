@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../../provider/member_provider.dart';
-import '../../../provider/attendance_provider.dart';
-import '../../../theme/app_colors.dart';
+import 'package:provider/provider.dart';
+
 import '../../../models/member_model.dart';
+import '../../../provider/attendance_provider.dart';
+import '../../../provider/member_provider.dart';
+import '../../../theme/app_colors.dart';
 
 class MemberProfileScreen extends StatelessWidget {
   final MemberModel member;
@@ -112,7 +113,7 @@ class MemberProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Joined: ${DateFormat('MMMM d, yyyy').format(member.joiningDate)}',
+                'Joined: ${DateFormat('MMMM d, yyyy').format(member.createdAt)}',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Colors.grey,
                     ),

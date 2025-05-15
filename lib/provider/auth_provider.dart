@@ -2,9 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mess_management/dio/api_urls.dart';
 import 'package:mess_management/dio/dio_client.dart';
+import 'package:mess_management/utilities/global_variable.dart';
 
 class AuthProvider with ChangeNotifier {
-  final Dio _dio = Dio();
   bool _isLoading = false;
   String? _error;
   String? _token;
@@ -26,11 +26,13 @@ class AuthProvider with ChangeNotifier {
           'password': password,
         },
       );
+      print("Response: $response");
       if (response['statusCode'] == 200) {
-        _token = response['token'];
+        _token = response['data']['token'];
+        print("Token: $_token");
+        globalToken = _token!;
         _isLoading = false;
         notifyListeners();
-
         return true;
       } else {
         _error = response['message'] ?? 'Login failed';

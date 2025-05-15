@@ -1,6 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'dart:convert';
+
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:mess_management/dio/api_urls.dart';
+import 'package:mess_management/dio/dio_client.dart';
+
 import '../models/member_model.dart';
 
 class MemberProvider extends ChangeNotifier {
@@ -38,33 +42,19 @@ class MemberProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      const url = 'http://10.0.2.2:3000/members'; // For Android Emulator
-      // final url = 'http://localhost:3000/members'; // For iOS Simulator
-      // final url = 'http://192.168.1.100:3000/members'; // For physical device
+      final response =
+          await dio(method: 'POST', endPoint: ApiUrls().addMember, body: {
+        "name": name,
+        "roomNumber": roomNumber,
+        "phoneNumber": phoneNumber,
+        "email": email,
+        "pic": pic,
+        "aadharCard": aadharCard,
+        "address": address,
+      });
 
-      debugPrint('Making API request to: $url');
-
-      final response = await _dio.post(
-        url,
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $_token',
-          },
-        ),
-        data: json.encode({
-          "name": name,
-          "roomNumber": roomNumber,
-          "phoneNumber": phoneNumber,
-          "email": email,
-          "pic": pic,
-          "aadharCard": aadharCard,
-          "address": address,
-        }),
-      );
-
-      debugPrint('Response received with status: ${response.statusCode}');
-      debugPrint('Response data: ${response.data}');
+      debugPrint('Response received with status: ${response['statusCode']}');
+      debugPrint('Response data: ${response['data']}');
 
       if (response.statusCode == 200) {
         final member =
@@ -120,36 +110,64 @@ class MemberProvider extends ChangeNotifier {
   }
 
   Future<void> fetchMembers() async {
+    print("Fetching members...");
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      const url = 'http://10.0.2.2:3000/members'; // For Android Emulator
-      // final url = 'http://localhost:3000/members'; // For iOS Simulator
-      // final url = 'http://192.168.1.100:3000/members'; // For physical device
-
-      final response = await _dio.get(
-        url,
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $_token',
-          },
-        ),
+      final response = await dio(
+        method: 'GET',
+        endPoint: ApiUrls().getMembers,
       );
+      print("Response received with status: ${response['statusCode']}");
+      // print("Response data: ${response['data']['data']}");
 
-      if (response.statusCode == 200) {
-        _members = List<MemberModel>.from(response.data.map(
-            (data) => MemberModel.fromJson(Map<String, dynamic>.from(data))));
+      if (response['statusCode'] == 200) {
+        final List<dynamic> membersData = response['data']['data'];
+        print("Members data: $membersData");
+        _members = membersData
+            .map(
+                (data) => MemberModel.fromJson(Map<String, dynamic>.from(data)))
+            .toList();
+        print("Members: $_members");
         _isLoading = false;
         notifyListeners();
       } else {
-        _error = 'Failed to fetch members';
+        _error = response['message'] ?? 'Failed to fetch members';
         _isLoading = false;
         notifyListeners();
       }
+    } on DioException catch (e) {
+      String errorMessage;
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+          errorMessage =
+              'Connection timeout. Please check your internet connection.';
+          break;
+        case DioExceptionType.connectionError:
+          errorMessage =
+              'Could not connect to the server. Please check if the server is running.';
+          break;
+        case DioExceptionType.receiveTimeout:
+          errorMessage = 'Server response timeout. Please try again.';
+          break;
+        case DioExceptionType.sendTimeout:
+          errorMessage =
+              'Request timeout. Please check your internet connection.';
+          break;
+        case DioExceptionType.badResponse:
+          errorMessage =
+              'Server error: ${e.response?.statusCode} - ${e.response?.data}';
+          break;
+        default:
+          errorMessage = 'Network error: ${e.message ?? e.toString()}';
+      }
+      _error = errorMessage;
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      _error = 'An unexpected error occurred: $e';
       _isLoading = false;
       notifyListeners();
     }

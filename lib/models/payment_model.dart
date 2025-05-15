@@ -43,17 +43,17 @@ class PaymentModel {
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
     return PaymentModel(
-      id: json['id'],
-      name: json['name'],
-      type: json['type'],
-      amount: json['amount'].toDouble(),
-      description: json['description'],
-      category: json['category'],
-      subCategory: json['subCategory'],
-      paymentMethod: json['paymentMethod'],
-      upiSubType: json['upiSubType'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      type: json['type'] ?? '',
+      amount: json['amount'].toDouble() ?? 0.0,
+      description: json['description'] ?? '',
+      category: json['category'] ?? '',
+      subCategory: json['subCategory'] ?? '',
+      paymentMethod: json['paymentMethod'] ?? '',
+      upiSubType: json['upiSubType'] ?? '',
       imageUrl: json['imageUrl'] ?? '',
-      date: DateTime.parse(json['date']),
+      date: DateTime.parse(json['date'] ?? DateTime.now().toIso8601String()),
     );
   }
 }

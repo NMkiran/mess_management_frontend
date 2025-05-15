@@ -1,7 +1,9 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+
 import '../../../provider/member_provider.dart';
 
 class AddPaymentDialog extends StatefulWidget {
@@ -19,10 +21,18 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
   DateTime _selectedDate = DateTime.now();
   String _selectedPaymentMethod = 'Cash';
   String _selectedModeOfPayment = 'Offline';
+
+  String _selectedUpiSubType = 'GOOGLE_PAY';
   XFile? _selectedImage;
 
   final List<String> _paymentMethods = ['Cash', 'UPI', 'Bank Transfer', 'Card'];
   final List<String> _modesOfPayment = ['Online', 'Offline'];
+  final List<String> _upiSubTypes = [
+    'GOOGLE_PAY',
+    'PHONE_PAY',
+    'PAYTM',
+    'OTHER'
+  ];
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -89,9 +99,12 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                       );
                     }).toList(),
                     onChanged: (value) {
+                      print(value);
                       setState(() {
                         _selectedMemberId = value;
                       });
+                      print(value);
+                      print(_selectedMemberId);
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -163,6 +176,35 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                value: _selectedUpiSubType,
+                decoration: const InputDecoration(
+                  labelText: 'UPI Type',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.account_balance_wallet),
+                ),
+                items: _upiSubTypes.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(type),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedUpiSubType = value;
+                    });
+                  }
+                },
+                validator: (value) {
+                  if (_selectedPaymentMethod == 'UPI' &&
+                      (value == null || value.isEmpty)) {
+                    return 'Please select a UPI type';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
                 value: _selectedModeOfPayment,
                 decoration: const InputDecoration(
                   labelText: 'Mode of Payment',
@@ -229,10 +271,26 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
+                        print("Selected Member ID: $_selectedMemberId");
                         final selectedMember =
                             Provider.of<MemberProvider>(context, listen: false)
                                 .members
                                 .firstWhere((m) => m.id == _selectedMemberId);
+                        print("Selected Member Name: ${selectedMember.name}");
+                        print(
+                            "Selected Member Room Number: ${selectedMember.roomNumber}");
+                        print("Selected Member ID: ${selectedMember.id}");
+                        print("Selected Member Email: ${selectedMember.email}");
+                        print(
+                            "Selected Member Aadhar: ${selectedMember.aadharCard}");
+                        print(
+                            "Selected Member Address: ${selectedMember.address}");
+                        print(
+                            "Selected Member Created At: ${selectedMember.createdAt}");
+                        print(
+                            "Selected Member Active: ${selectedMember.isActive}");
+                        print(
+                            "Selected Member Created At: ${selectedMember.createdAt}");
 
                         Navigator.pop(context, {
                           'memberId': _selectedMemberId,
@@ -243,6 +301,7 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                               '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}',
                           'description': _descriptionController.text,
                           'paymentMethod': _selectedPaymentMethod,
+                          'upiSubType': _selectedUpiSubType,
                           'modeOfPayment': _selectedModeOfPayment,
                           'paymentImagePath': _selectedImage?.path,
                         });

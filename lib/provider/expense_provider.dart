@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:mess_management/dio/api_urls.dart';
+import 'package:mess_management/dio/dio_client.dart';
+import 'package:mess_management/utilities/global_variable.dart';
 
 import '../models/expense_model.dart';
 
@@ -11,21 +14,18 @@ class ExpenseProvider extends ChangeNotifier {
   String? _error;
   List<ExpenseModel> _expenses = [];
   double _totalExpenses = 0;
-  String? _token;
+  // String? _token;
 
   bool get isLoading => _isLoading;
   String? get error => _error;
   List<ExpenseModel> get expenses => _expenses;
   double get totalExpenses => _totalExpenses;
 
-  void setToken(String token) {
-    _token = token;
-  }
-
   void _calculateTotal() {
     _totalExpenses = _expenses.fold(0, (sum, expense) => sum + expense.amount);
   }
 
+//Add expanses completed
   Future<bool> addExpense({
     required String category,
     required String description,
@@ -40,18 +40,12 @@ class ExpenseProvider extends ChangeNotifier {
 
     try {
       // Validate token
-      if (_token == null || _token!.isEmpty) {
+      if (globalToken.isEmpty) {
         _error = 'Authentication token is missing. Please log in again.';
         _isLoading = false;
         notifyListeners();
         return false;
       }
-
-      // const url = 'http://10.0.2.2:3000/expenses'; // For Android Emulator
-      const url = 'http://localhost:3000/expenses'; // For iOS Simulator
-      // final url = 'http://192.168.1.100:3000/expenses'; // For physical device
-
-      debugPrint('Making API request to: $url');
 
       // Validate input data
       if (amount <= 0) {
@@ -92,70 +86,48 @@ class ExpenseProvider extends ChangeNotifier {
         "pic": pic.isEmpty ? null : pic.trim(), // Send null if pic is empty
       };
 
-      final headers = {
-        'Authorization': 'Bearer $_token',
-        'Content-Type': 'application/json',
-      };
-
-      debugPrint('Request data: $requestData');
-      debugPrint('Request headers: $headers');
-
       // First, try to encode the request data to ensure it's valid JSON
-      try {
-        json.encode(requestData);
-      } catch (e) {
-        debugPrint('Error encoding request data: $e');
-        _error = 'Invalid request data format';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-
-      final response = await _dio.post(
-        url,
-        options: Options(
-          headers: headers,
-          validateStatus: (status) =>
-              true, // Accept all status codes for better error handling
-        ),
-        data: requestData,
+      Map response = await dio(
+        method: 'POST',
+        endPoint: ApiUrls().addExpanse,
+        body: requestData,
       );
+      // try {} catch (e) {
+      //   debugPrint('Error encoding request data: $e');
+      //   _error = 'Invalid request data format';
+      //   _isLoading = false;
+      //   notifyListeners();
+      //   return false;
+      // }
 
-      debugPrint('Full response: ${response.toString()}');
-
-      if (response.statusCode == 400) {
+      if (response['statusCode'] == 400) {
         _error =
-            'Invalid request: ${response.data['message'] ?? 'Unknown error'}';
-        if (response.data['details'] != null) {
-          debugPrint('Validation errors: ${response.data['details']}');
-        }
+            'Invalid request: ${response['data']['message'] ?? 'Unknown error'}';
+        if (response['data']['details'] != null) {}
         _isLoading = false;
         notifyListeners();
         return false;
       }
 
-      debugPrint('Response received with status: ${response.statusCode}');
-      debugPrint('Response data: ${response.data}');
-      debugPrint('Response headers: ${response.headers}');
+      if (response['statusCode'] == 200 || response['statusCode'] == 201) {
+        final expense = ExpenseModel.fromJson(
+            Map<String, dynamic>.from(response['data'] ?? {}));
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final expense =
-            ExpenseModel.fromJson(Map<String, dynamic>.from(response.data));
         _expenses.add(expense);
         _calculateTotal();
         _isLoading = false;
         notifyListeners();
         return true;
-      } else if (response.statusCode == 401) {
+      } else if (response['statusCode'] == 401) {
         _error = 'Authentication failed. Please log in again.';
         _isLoading = false;
         notifyListeners();
         return false;
       } else {
         final errorMessage =
-            response.data['message'] ?? 'Failed to add expense';
-        final errorDetails = response.data['details'] ?? '';
-        final validationErrors = response.data['errors'] ?? {};
+            response['data']['message'] ?? 'Failed to add expense';
+        final errorDetails = response['data']['details'] ?? '';
+        final validationErrors = response['data']['errors'] ?? {};
 
         String fullErrorMessage = errorMessage;
         if (errorDetails.isNotEmpty) {
@@ -244,7 +216,7 @@ class ExpenseProvider extends ChangeNotifier {
         url,
         options: Options(
           headers: {
-            'Authorization': 'Bearer $_token',
+            // 'Authorization': 'Bearer $_token',
           },
         ),
       );
@@ -282,7 +254,7 @@ class ExpenseProvider extends ChangeNotifier {
         url,
         options: Options(
           headers: {
-            'Authorization': 'Bearer $_token',
+            // 'Authorization': 'Bearer $_token',
           },
         ),
       );
@@ -330,7 +302,7 @@ class ExpenseProvider extends ChangeNotifier {
         options: Options(
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $_token',
+            // 'Authorization': 'Bearer $_token',
           },
         ),
         data: json.encode({
