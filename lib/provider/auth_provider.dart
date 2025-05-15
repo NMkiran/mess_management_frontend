@@ -18,7 +18,7 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      Map response = await dio(
+      Map<String, dynamic> response = await dio(
         method: 'POST',
         endPoint: ApiUrls().login,
         body: {
