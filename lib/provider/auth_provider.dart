@@ -4,7 +4,6 @@ import 'package:mess_management/dio/api_urls.dart';
 import 'package:mess_management/dio/dio_client.dart';
 
 class AuthProvider with ChangeNotifier {
-  final Dio _dio = Dio();
   bool _isLoading = false;
   String? _error;
   String? _token;
@@ -18,7 +17,7 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      Map response = await dio(
+      Map<String, dynamic> response = await dio(
         method: 'POST',
         endPoint: ApiUrls().login,
         body: {
