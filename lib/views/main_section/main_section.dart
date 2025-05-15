@@ -40,15 +40,6 @@ class MainSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MainSectionView();
-  }
-}
-
-class MainSectionView extends StatelessWidget {
-  const MainSectionView({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
     return Consumer<MainSectionProvider>(
       builder: (context, provider, _) {
         return Scaffold(

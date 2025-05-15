@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:mess_management/core/constants/app_constants.dart';
+import 'package:mess_management/core/services/navigation_service.dart';
 import 'package:mess_management/provider/attendance_provider.dart';
+import 'package:mess_management/provider/expenses_provider.dart';
+import 'package:mess_management/provider/history_provider.dart';
 import 'package:mess_management/provider/profile_provider.dart';
 import 'package:mess_management/views/main_section/main_section.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +19,13 @@ import 'views/auth/login_page.dart';
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Initialize Hive
     await Hive.initFlutter();
+
+    // Register Hive Adapters
+    // TODO: Register your Hive adapters here
+
     runApp(const MyApp());
   } catch (e) {
     debugPrint('Failed to initialize app: $e');
@@ -43,18 +53,23 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => MemberProvider()),
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
-        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
+        // ChangeNotifierProvider(create: (_) => ExpenseProvider()),
         ChangeNotifierProvider(create: (_) => MainSectionProvider()),
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
-        ChangeNotifierProvider(create: (_) => MemberProvider()),
-        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
-        ChangeNotifierProvider(create: (_) => PaymentProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => HistoryProvider()),
+        ChangeNotifierProvider(create: (_) => ExpensesProvider()),
       ],
       child: MaterialApp(
-        title: 'Mess Management',
+        title: AppConstants.appName,
+        navigatorKey: NavigationService.navigatorKey,
         theme: AppTheme.darkTheme,
-        home: const LoginPage(),
+        initialRoute: AppConstants.loginRoute,
+        routes: {
+          AppConstants.loginRoute: (context) => const LoginPage(),
+          AppConstants.homeRoute: (context) => const MainSection(),
+          // TODO: Add other routes here
+        },
         builder: (context, child) {
           return MediaQuery(
             data: MediaQuery.of(context)

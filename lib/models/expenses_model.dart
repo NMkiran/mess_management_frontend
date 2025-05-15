@@ -1,4 +1,4 @@
-class PaymentModel {
+class ExpensesModel {
   final String id;
   final String name;
   final String type;
@@ -11,7 +11,7 @@ class PaymentModel {
   final String imageUrl;
   final DateTime date;
 
-  PaymentModel({
+  ExpensesModel({
     required this.id,
     required this.name,
     required this.type,
@@ -41,8 +41,8 @@ class PaymentModel {
     };
   }
 
-  factory PaymentModel.fromJson(Map<String, dynamic> json) {
-    return PaymentModel(
+  factory ExpensesModel.fromJson(Map<String, dynamic> json) {
+    return ExpensesModel(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       type: json['type'] ?? '',

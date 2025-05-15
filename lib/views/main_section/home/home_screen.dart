@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:mess_management/provider/expenses_provider.dart';
+import 'package:mess_management/providers/expense_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../provider/attendance_provider.dart';
 import '../../../provider/member_provider.dart';
-import '../../../provider/expense_provider.dart';
 import '../../../provider/payment_provider.dart';
 import '../../../theme/app_colors.dart';
 import 'add_member_dialog.dart';
@@ -65,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      body: Consumer3<AttendanceProvider, MemberProvider, ExpenseProvider>(
+      body: Consumer3<AttendanceProvider, MemberProvider, ExpensesProvider>(
         builder: (context, attendance, member, expense, _) {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -76,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   totalMembers: member.totalMembers,
                   activeMembers: member.activeCount,
-                  totalExpenses: expense.totalExpenses,
+                  // totalExpenses: expense.totalExpenses,
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -158,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context, {
     required int totalMembers,
     required int activeMembers,
-    required double totalExpenses,
+    // required double totalExpenses,
   }) {
     final currencyFormatter = NumberFormat.currency(symbol: '₹');
     final attendance = context.watch<AttendanceProvider>();
@@ -196,7 +197,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   icon: Icons.currency_rupee,
                   label: 'Total\nExpenses',
-                  value: currencyFormatter.format(totalExpenses),
+                  // value: currencyFormatter.format(totalExpenses),
+                  value: "",
                   color: AppColors.warning,
                 ),
               ],

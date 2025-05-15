@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mess_management/provider/expense_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../../provider/expense_provider.dart';
 import '../../../provider/payment_provider.dart';
 import '../../../models/payment_model.dart';
 import '../../../theme/app_colors.dart';
@@ -241,9 +241,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
         final todayStart = DateTime(now.year, now.month, now.day);
         final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-        final todayExpenses = expenses
-            .getExpensesByDateRange(todayStart, todayEnd)
-            .fold(0.0, (sum, expense) => sum + expense.amount);
+        // final todayExpenses = expenses
+        //     ?.getExpensesByDateRange(todayStart, todayEnd)
+        //     .fold(0.0, (sum, expense) => sum + expense.amount);
 
         final todayPayments = payments
             .getPaymentsByDateRange(todayStart, todayEnd)
@@ -253,9 +253,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
         final currentMonthStart = DateTime(now.year, now.month, 1);
         final currentMonthEnd = DateTime(now.year, now.month + 1, 0);
 
-        final currentMonthExpenses = expenses
-            .getExpensesByDateRange(currentMonthStart, currentMonthEnd)
-            .fold(0.0, (sum, expense) => sum + expense.amount);
+        // final currentMonthExpenses = expenses
+        //     .getExpensesByDateRange(currentMonthStart, currentMonthEnd)
+        //     .fold(0.0, (sum, expense) => sum + expense.amount);
 
         final currentMonthPayments = payments.getCurrentMonthTotal();
 
@@ -273,7 +273,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         context,
                         label: 'Today',
                         income: todayPayments,
-                        expense: todayExpenses,
+                        // expense: todayExpenses,
+                        expense: 0.0,
                       ),
                     ),
                     Container(
@@ -287,7 +288,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         context,
                         label: 'This Month',
                         income: currentMonthPayments,
-                        expense: currentMonthExpenses,
+                        // expense: currentMonthExpenses,
+                        expense: 0.0,
                       ),
                     ),
                     Container(
@@ -301,7 +303,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         context,
                         label: 'All Time',
                         income: payments.totalPayments,
-                        expense: expenses.totalExpenses,
+                        // expense: expenses.totalExpenses,
+                        expense: 0.0,
                       ),
                     ),
                   ],
@@ -332,7 +335,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         const SizedBox(height: 8),
         Text(
           'Income: ${NumberFormat.currency(symbol: '₹').format(income)}',
-          style:const TextStyle(
+          style: const TextStyle(
             color: AppColors.success,
             fontWeight: FontWeight.bold,
           ),
@@ -340,7 +343,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
         Text(
           'Expense: ${NumberFormat.currency(symbol: '₹').format(expense)}',
-          style:const TextStyle(
+          style: const TextStyle(
             color: AppColors.error,
             fontWeight: FontWeight.bold,
           ),

@@ -1,60 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:dio/dio.dart';
-import '../models/payment_model.dart';
+import 'package:mess_management/utilities/global_variable.dart';
+import '../models/expenses_model.dart';
 import '../dio/dio_client.dart';
 import '../dio/dio_exceptions.dart';
 import '../dio/api_urls.dart';
 
-class PaymentProvider extends ChangeNotifier {
-  static const String _boxName = 'payments';
-  late final Box _box;
-  List<PaymentModel> _payments = [];
-  double _totalPayments = 0;
+class ExpensesProvider extends ChangeNotifier {
+  List<ExpensesModel> _expenses = [];
+  double _totalExpenses = 0;
   final _dioClient = DioClient();
   bool _isLoading = false;
   String? _error;
-  String? _token;
-
-  PaymentProvider() {
-    _initHive();
-  }
-
-  Future<void> _initHive() async {
-    _box = await Hive.openBox(_boxName);
-    await _loadPayments();
-  }
-
-  Future<void> _loadPayments() async {
-    final List<dynamic> paymentsJson = _box.get('payments', defaultValue: []);
-    if (paymentsJson.isEmpty) {
-      // Load dummy data if no data exists
-      // _payments = DummyData.getSamplePayments();
-      await _box.put('payments', _payments.map((p) => p.toJson()).toList());
-    } else {
-      _payments = paymentsJson
-          .map((json) => PaymentModel.fromJson(Map<String, dynamic>.from(json)))
-          .toList();
-    }
-    _calculateTotal();
-    notifyListeners();
-  }
-
-  void _calculateTotal() {
-    _totalPayments = _payments.fold(0, (sum, payment) => sum + payment.amount);
-  }
 
   bool get isLoading => _isLoading;
   String? get error => _error;
-  List<PaymentModel> get payments => _payments;
-  double get totalPayments => _totalPayments;
+  List<ExpensesModel> get expenses => _expenses;
+  double get totalExpenses => _totalExpenses;
 
-  void setToken(String token) {
-    _token = token;
-    _dioClient.setAuthToken(token);
-  }
+  // void setToken(String token) {
+  //   _token = token;
+  //   _dioClient.setAuthToken(token);
+  // }
 
-  Future<bool> addPayment({
+  Future<bool> addExpense({
     required String name,
     required String type,
     required double amount,
@@ -70,7 +39,7 @@ class PaymentProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (_token == null || _token!.isEmpty) {
+      if (globalToken == null || globalToken!.isEmpty) {
         _error = 'Authentication token is missing. Please log in again.';
         _isLoading = false;
         notifyListeners();
@@ -112,16 +81,16 @@ class PaymentProvider extends ChangeNotifier {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final payment =
-            PaymentModel.fromJson(Map<String, dynamic>.from(response.data));
-        _payments.add(payment);
+        final expense =
+            ExpensesModel.fromJson(Map<String, dynamic>.from(response.data));
+        _expenses.add(expense);
         _calculateTotal();
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
         final errorMessage =
-            response.data['message'] ?? 'Failed to add payment';
+            response.data['message'] ?? 'Failed to add expense';
         final errorDetails = response.data['details'] ?? '';
         _error = errorDetails.isNotEmpty
             ? '$errorMessage: $errorDetails'
@@ -143,7 +112,7 @@ class PaymentProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchPayments() async {
+  Future<void> fetchExpenses() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -153,13 +122,13 @@ class PaymentProvider extends ChangeNotifier {
       final response = await _dioClient.dio.get(url);
 
       if (response.statusCode == 200) {
-        _payments = List<PaymentModel>.from(response.data.map(
-            (data) => PaymentModel.fromJson(Map<String, dynamic>.from(data))));
+        _expenses = List<ExpensesModel>.from(response.data.map(
+            (data) => ExpensesModel.fromJson(Map<String, dynamic>.from(data))));
         _calculateTotal();
         _isLoading = false;
         notifyListeners();
       } else {
-        _error = 'Failed to fetch payments';
+        _error = 'Failed to fetch expenses';
         _isLoading = false;
         notifyListeners();
       }
@@ -174,23 +143,23 @@ class PaymentProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> deletePayment(String paymentId) async {
+  Future<bool> deleteExpense(String expenseId) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final url = '${ApiUrls.baseUrl}${ApiUrls.paymentById(paymentId)}';
+      final url = '${ApiUrls.baseUrl}${ApiUrls.paymentById(expenseId)}';
       final response = await _dioClient.dio.delete(url);
 
       if (response.statusCode == 200) {
-        _payments.removeWhere((payment) => payment.id == paymentId);
+        _expenses.removeWhere((expense) => expense.id == expenseId);
         _calculateTotal();
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _error = 'Failed to delete payment';
+        _error = 'Failed to delete expense';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -208,35 +177,25 @@ class PaymentProvider extends ChangeNotifier {
     }
   }
 
-  List<PaymentModel> getPaymentsByMemberId(String memberId) {
-    return _payments.where((payment) => payment.id == memberId).toList();
+  void _calculateTotal() {
+    _totalExpenses = _expenses.fold(0, (sum, expense) => sum + expense.amount);
   }
 
-  // List<PaymentModel> getPaymentsByMonth(String month) {
-  //   return _payments.where((payment) => payment.month == month).toList();
-  // }
-
-  List<PaymentModel> getPaymentsByDateRange(DateTime start, DateTime end) {
-    return _payments
-        .where((payment) =>
-            payment.date.isAfter(start.subtract(const Duration(days: 1))) &&
-            payment.date.isBefore(end.add(const Duration(days: 1))))
+  List<ExpensesModel> getExpensesByDateRange(DateTime start, DateTime end) {
+    return _expenses
+        .where((expense) =>
+            expense.date.isAfter(start.subtract(const Duration(days: 1))) &&
+            expense.date.isBefore(end.add(const Duration(days: 1))))
         .toList();
   }
-
-  // double getTotalPaymentsForMonth(String month) {
-  //   return getPaymentsByMonth(month)
-  //       .fold(0, (sum, payment) => sum + payment.amount);
-  // }
 
   double getCurrentMonthTotal() {
     final now = DateTime.now();
     final currentMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
-    // return getTotalPaymentsForMonth(currentMonth);
-    return _payments
-        .where((payment) =>
-            '${payment.date.year}-${payment.date.month.toString().padLeft(2, '0')}' ==
+    return _expenses
+        .where((expense) =>
+            '${expense.date.year}-${expense.date.month.toString().padLeft(2, '0')}' ==
             currentMonth)
-        .fold(0, (sum, payment) => sum + payment.amount);
+        .fold(0, (sum, expense) => sum + expense.amount);
   }
 }

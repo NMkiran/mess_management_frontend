@@ -103,50 +103,50 @@ class DummyData {
     ];
   }
 
-  static List<ExpenseModel> getSampleExpenses() {
-    return [
-      ExpenseModel(
-        id: '1',
-        subCategory: 'Groceries',
-        description: 'Rice and Groceries',
-        amount: 12500.00,
-        date: DateTime.now().subtract(const Duration(days: 5)),
-        category: 'Groceries',
-      ),
-      ExpenseModel(
-        id: '2',
-        description: 'Vegetables',
-        subCategory: 'Groceries',
-        amount: 3200.00,
-        date: DateTime.now().subtract(const Duration(days: 4)),
-        category: 'Vegetables',
-      ),
-      ExpenseModel(
-        id: '3',
-        subCategory: 'Groceries',
-        description: 'Gas Cylinder',
-        amount: 1800.00,
-        date: DateTime.now().subtract(const Duration(days: 3)),
-        category: 'Utilities',
-      ),
-      ExpenseModel(
-        id: '4',
-        subCategory: 'Groceries',
-        description: 'Cook Salary',
-        amount: 15000.00,
-        date: DateTime.now().subtract(const Duration(days: 2)),
-        category: 'Salary',
-      ),
-      ExpenseModel(
-        id: '5',
-        subCategory: 'Groceries',
-        description: 'Kitchen Equipment',
-        amount: 5000.00,
-        date: DateTime.now().subtract(const Duration(days: 1)),
-        category: 'Equipment',
-      ),
-    ];
-  }
+  // static List<ExpenseModel> getSampleExpenses() {
+  //   return [
+  //     ExpenseModel(
+  //       id: '1',
+  //       subCategory: 'Groceries',
+  //       description: 'Rice and Groceries',
+  //       amount: 12500.00,
+  //       date: DateTime.now().subtract(const Duration(days: 5)),
+  //       category: 'Groceries',
+  //     ),
+  //     ExpenseModel(
+  //       id: '2',
+  //       description: 'Vegetables',
+  //       subCategory: 'Groceries',
+  //       amount: 3200.00,
+  //       date: DateTime.now().subtract(const Duration(days: 4)),
+  //       category: 'Vegetables',
+  //     ),
+  //     ExpenseModel(
+  //       id: '3',
+  //       subCategory: 'Groceries',
+  //       description: 'Gas Cylinder',
+  //       amount: 1800.00,
+  //       date: DateTime.now().subtract(const Duration(days: 3)),
+  //       category: 'Utilities',
+  //     ),
+  //     ExpenseModel(
+  //       id: '4',
+  //       subCategory: 'Groceries',
+  //       description: 'Cook Salary',
+  //       amount: 15000.00,
+  //       date: DateTime.now().subtract(const Duration(days: 2)),
+  //       category: 'Salary',
+  //     ),
+  //     ExpenseModel(
+  //       id: '5',
+  //       subCategory: 'Groceries',
+  //       description: 'Kitchen Equipment',
+  //       amount: 5000.00,
+  //       date: DateTime.now().subtract(const Duration(days: 1)),
+  //       category: 'Equipment',
+  //     ),
+  //   ];
+  // }
 
   // static List<PaymentModel> getSamplePayments() {
   //   return [
