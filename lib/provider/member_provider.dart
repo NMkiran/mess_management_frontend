@@ -56,15 +56,15 @@ class MemberProvider extends ChangeNotifier {
       debugPrint('Response received with status: ${response['statusCode']}');
       debugPrint('Response data: ${response['data']}');
 
-      if (response.statusCode == 200) {
+      if (response['statusCode'] == 200) {
         final member =
-            MemberModel.fromJson(Map<String, dynamic>.from(response.data));
+            MemberModel.fromJson(Map<String, dynamic>.from(response['data']));
         _members.add(member);
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _error = response.data['message'] ?? 'Failed to add member';
+        _error = response['data']['message'] ?? 'Failed to add member';
         _isLoading = false;
         notifyListeners();
         return false;
