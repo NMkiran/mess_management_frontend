@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mess_management/core/constants/app_constants.dart';
 import 'package:mess_management/core/services/navigation_service.dart';
+import 'package:mess_management/core/services/notification_service.dart';
 import 'package:mess_management/provider/attendance_provider.dart';
+import 'package:mess_management/provider/expense_provider.dart';
 import 'package:mess_management/provider/expenses_provider.dart';
 import 'package:mess_management/provider/history_provider.dart';
 import 'package:mess_management/provider/profile_provider.dart';
@@ -10,7 +12,6 @@ import 'package:mess_management/views/main_section/main_section.dart';
 import 'package:provider/provider.dart';
 
 import 'provider/auth_provider.dart';
-import 'provider/expense_provider.dart';
 import 'provider/member_provider.dart';
 import 'provider/payment_provider.dart';
 import 'theme/app_theme.dart';
@@ -23,8 +24,17 @@ void main() async {
     // Initialize Hive
     await Hive.initFlutter();
 
-    // Register Hive Adapters
-    // TODO: Register your Hive adapters here
+    // Initialize Notification Service
+    final notificationService = NotificationService();
+    await notificationService.initialize();
+
+    // Schedule 10 AM mess alarm
+    await notificationService.scheduleMessAlarm(
+      hour: 14,
+      minute: 24,
+      title: 'Mess Time',
+      body: 'It\'s 10:00 AM! Time for mess.',
+    );
 
     runApp(const MyApp());
   } catch (e) {
@@ -53,7 +63,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => MemberProvider()),
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
-        // ChangeNotifierProvider(create: (_) => ExpenseProvider()),
+        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
         ChangeNotifierProvider(create: (_) => MainSectionProvider()),
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
