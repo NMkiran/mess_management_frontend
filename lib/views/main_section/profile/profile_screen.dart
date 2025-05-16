@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../theme/app_colors.dart';
+
 import '../../../provider/profile_provider.dart';
+import '../../../theme/app_colors.dart';
 import '../../auth/login_page.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -40,7 +41,7 @@ class ProfileView extends StatelessWidget {
 
     if (confirmed == true) {
       final provider = context.read<ProfileProvider>();
-      await provider.clearUserData();
+      provider.clearUserData();
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -56,8 +57,6 @@ class ProfileView extends StatelessWidget {
     final nameController = TextEditingController(text: provider.name);
     final emailController = TextEditingController(text: provider.email);
     final phoneController = TextEditingController(text: provider.phone);
-    final roomNumberController =
-        TextEditingController(text: provider.roomNumber);
 
     final result = await showDialog<bool>(
       context: context,
@@ -75,6 +74,7 @@ class ProfileView extends StatelessWidget {
                   decoration: const InputDecoration(
                     labelText: 'Name',
                     border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -89,6 +89,7 @@ class ProfileView extends StatelessWidget {
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.email),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -106,6 +107,7 @@ class ProfileView extends StatelessWidget {
                   decoration: const InputDecoration(
                     labelText: 'Phone',
                     border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.phone),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -113,20 +115,6 @@ class ProfileView extends StatelessWidget {
                     }
                     if (value.length < 10) {
                       return 'Please enter a valid phone number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: roomNumberController,
-                  decoration: const InputDecoration(
-                    labelText: 'Room Number',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your room number';
                     }
                     return null;
                   },
@@ -156,12 +144,22 @@ class ProfileView extends StatelessWidget {
     );
 
     if (result == true) {
-      await provider.updateProfile(
+      final success = await provider.updateProfile(
         name: nameController.text,
         email: emailController.text,
         phone: phoneController.text,
-        roomNumber: roomNumberController.text,
       );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success
+                ? 'Profile updated successfully'
+                : (provider.error ?? 'Failed to update profile')),
+            backgroundColor: success ? Colors.green : Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -179,23 +177,54 @@ class ProfileView extends StatelessWidget {
       ),
       body: Consumer<ProfileProvider>(
         builder: (context, provider, _) {
+          if (provider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          print("Error: ${provider.error}");
+          print("Name: ${provider.name}");
+          if (provider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(provider.error!),
+                  ElevatedButton(
+                    onPressed: () => provider.fetchUserProfile(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 50,
                   backgroundColor: AppColors.accent,
-                  child: Icon(
-                    Icons.person,
-                    size: 50,
-                    color: AppColors.textPrimary,
+                  child: Text(
+                    provider.name.isNotEmpty
+                        ? provider.name[0].toUpperCase()
+                        : '?',
+                    style: const TextStyle(
+                      fontSize: 36,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
                 Text(
                   provider.name,
-                  style: Theme.of(context).textTheme.displayLarge,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                Text(
+                  '@${provider.username}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.grey,
+                      ),
                 ),
                 const SizedBox(height: 32),
                 _buildInfoCard(
@@ -210,13 +239,6 @@ class ProfileView extends StatelessWidget {
                   icon: Icons.phone,
                   label: 'Phone',
                   value: provider.phone,
-                ),
-                const SizedBox(height: 16),
-                _buildInfoCard(
-                  context,
-                  icon: Icons.room,
-                  label: 'Room Number',
-                  value: provider.roomNumber,
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton.icon(
@@ -261,12 +283,14 @@ class ProfileView extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Colors.grey,
+                        ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     value,
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
               ),

@@ -2,7 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mess_management/dio/api_urls.dart';
 import 'package:mess_management/dio/dio_client.dart';
+import 'package:mess_management/provider/profile_provider.dart';
 import 'package:mess_management/utilities/global_variable.dart';
+import 'package:provider/provider.dart';
 
 class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
@@ -13,11 +15,15 @@ class AuthProvider with ChangeNotifier {
   String? get error => _error;
   String? get token => _token;
 
-  Future<bool> login(
-      {required String username, required String password}) async {
+  Future<bool> login({
+    required String username,
+    required String password,
+    required BuildContext context,
+  }) async {
     _isLoading = true;
     notifyListeners();
     try {
+      print('Attempting login for username: $username');
       Map<String, dynamic> response = await dio(
         method: 'POST',
         endPoint: ApiUrls().login,
@@ -26,16 +32,42 @@ class AuthProvider with ChangeNotifier {
           'password': password,
         },
       );
-      print("Response: $response");
+      print('Auth Response: $response');
+
       if (response['statusCode'] == 200) {
-        _token = response['data']['token'];
-        print("Token: $_token");
+        final data = response['data'];
+        _token = data['token'];
+        print('Token received: $_token');
         globalToken = _token!;
+
+        // Get user ID - handle both formats where user info could be nested
+        var userInfo = data['user'] ?? data;
+        print('User info from response: $userInfo');
+
+        // Look for _id first, then id
+        final userId =
+            userInfo is Map ? (userInfo['_id'] ?? userInfo['id']) : null;
+        print('Extracted user ID: $userId');
+
+        if (userId != null) {
+          print('Setting user ID in ProfileProvider: $userId');
+          Provider.of<ProfileProvider>(context, listen: false)
+              .setUserId(userId.toString());
+        } else {
+          print('Warning: No user ID found in response');
+          _error = 'Could not find user ID in response';
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+
+        _error = null;
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
         _error = response['message'] ?? 'Login failed';
+        print('Login failed: $_error');
         _isLoading = false;
         notifyListeners();
         return false;

@@ -28,6 +28,7 @@ class _LoginPageState extends State<LoginPage> {
         final success = await authProvider.login(
           username: _usernameController.text,
           password: _passwordController.text,
+          context: context,
         );
 
         // debugPrint('Login result: $success');

@@ -38,7 +38,6 @@ class _MembersScreenState extends State<MembersScreen> {
       body: Consumer<MemberProvider>(
         builder: (context, provider, _) {
           final members = provider.members;
-          print("Members: $members");
 
           if (members.isEmpty) {
             return Center(

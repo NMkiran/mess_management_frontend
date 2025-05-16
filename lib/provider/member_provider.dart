@@ -53,9 +53,6 @@ class MemberProvider extends ChangeNotifier {
         "address": address,
       });
 
-      debugPrint('Response received with status: ${response['statusCode']}');
-      debugPrint('Response data: ${response['data']}');
-
       if (response['statusCode'] == 200) {
         final member =
             MemberModel.fromJson(Map<String, dynamic>.from(response['data']));
@@ -120,17 +117,14 @@ class MemberProvider extends ChangeNotifier {
         method: 'GET',
         endPoint: ApiUrls().getMembers,
       );
-      print("Response received with status: ${response['statusCode']}");
       // print("Response data: ${response['data']['data']}");
 
       if (response['statusCode'] == 200) {
         final List<dynamic> membersData = response['data']['data'];
-        print("Members data: $membersData");
         _members = membersData
             .map(
                 (data) => MemberModel.fromJson(Map<String, dynamic>.from(data)))
             .toList();
-        print("Members: $_members");
         _isLoading = false;
         notifyListeners();
       } else {
