@@ -2,9 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mess_management/dio/api_urls.dart';
 import 'package:mess_management/dio/dio_client.dart';
+
 import 'package:mess_management/provider/profile_provider.dart';
 import 'package:mess_management/utilities/global_variable.dart';
 import 'package:provider/provider.dart';
+
 
 class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
@@ -26,7 +28,7 @@ class AuthProvider with ChangeNotifier {
       print('Attempting login for username: $username');
       Map<String, dynamic> response = await dio(
         method: 'POST',
-        endPoint: ApiUrls().login,
+        endPoint: ApiUrls.login,
         body: {
           'username': username,
           'password': password,
@@ -35,6 +37,7 @@ class AuthProvider with ChangeNotifier {
       print('Auth Response: $response');
 
       if (response['statusCode'] == 200) {
+
         final data = response['data'];
         _token = data['token'];
         print('Token received: $_token');
@@ -62,6 +65,7 @@ class AuthProvider with ChangeNotifier {
         }
 
         _error = null;
+
         _isLoading = false;
         notifyListeners();
         return true;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mess_management/provider/expenses_provider.dart';
 import 'package:provider/provider.dart';
-import '../../../provider/expense_provider.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   const AddExpenseDialog({Key? key}) : super(key: key);
@@ -136,8 +136,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
               final expenseProvider =
-                  Provider.of<ExpenseProvider>(context, listen: false);
+                  Provider.of<ExpensesProvider>(context, listen: false);
               final success = await expenseProvider.addExpense(
+                name: 'Expense',
+                type: 'expense',
+                paymentMethod: 'Cash',
+                upiSubType: 'Cash',
                 category: _selectedCategory.toLowerCase(),
                 subCategory: _selectedSubCategory,
                 description: _descriptionController.text,

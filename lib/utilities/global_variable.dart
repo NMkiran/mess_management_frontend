@@ -1,1 +1,1 @@
-String globalToken = "";
+String? globalToken;

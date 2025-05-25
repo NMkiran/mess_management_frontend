@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
 import 'package:mess_management/dio/api_urls.dart';
 import 'package:mess_management/dio/dio_client.dart';
 import 'package:mess_management/utilities/global_variable.dart';
@@ -12,7 +13,7 @@ class PaymentProvider extends ChangeNotifier {
   late final Box _box;
   List<PaymentModel> _payments = [];
   double _totalPayments = 0;
-  final Dio _dio = Dio();
+  final _dioClient = DioClient();
   bool _isLoading = false;
   String? _error;
   String? _token;
@@ -52,6 +53,7 @@ class PaymentProvider extends ChangeNotifier {
 
   void setToken(String token) {
     _token = token;
+    _dioClient.setAuthToken(token);
   }
 
   Future<bool> addPayment({
@@ -76,6 +78,7 @@ class PaymentProvider extends ChangeNotifier {
         notifyListeners();
         return false;
       }
+
 
       // Validate input data
       if (amount <= 0) {
@@ -102,6 +105,7 @@ class PaymentProvider extends ChangeNotifier {
         "imageUrl": imageUrl.trim(),
       };
 
+
       // Add upiSubType only for UPI payments
       if (paymentMethod == 'UPI') {
         requestData['upiSubType'] = upiSubType;
@@ -111,13 +115,12 @@ class PaymentProvider extends ChangeNotifier {
         endPoint: ApiUrls().addPayment,
         method: 'POST',
         body: requestData,
+
       );
       print('Response: $response');
 
-      debugPrint('Response received with status: ${response['statusCode']}');
-      debugPrint('Response : ${response['data']}');
-
       if (response['statusCode'] == 200 || response['statusCode'] == 201) {
+
         final payment =
             PaymentModel.fromJson(Map<String, dynamic>.from(response['data']));
         _payments.add(payment);
@@ -137,55 +140,13 @@ class PaymentProvider extends ChangeNotifier {
         return false;
       }
     } on DioException catch (e) {
-      String errorMessage;
-      if (e.response?.data != null) {
-        debugPrint('Error response data: ${e.response?.data}');
-        if (e.response?.statusCode == 401) {
-          errorMessage = 'Authentication failed. Please log in again.';
-        } else if (e.response?.data['message'] != null) {
-          errorMessage = e.response?.data['message'];
-          if (e.response?.data['details'] != null) {
-            errorMessage += ': ${e.response?.data['details']}';
-          }
-        } else {
-          errorMessage =
-              'Server error: ${e.response?.statusCode} - ${e.response?.data}';
-        }
-      } else {
-        switch (e.type) {
-          case DioExceptionType.connectionTimeout:
-            errorMessage =
-                'Connection timeout. Please check your internet connection.';
-            break;
-          case DioExceptionType.connectionError:
-            errorMessage =
-                'Could not connect to the server. Please check if the server is running.';
-            break;
-          case DioExceptionType.receiveTimeout:
-            errorMessage = 'Server response timeout. Please try again.';
-            break;
-          case DioExceptionType.sendTimeout:
-            errorMessage =
-                'Request timeout. Please check your internet connection.';
-            break;
-          case DioExceptionType.badResponse:
-            errorMessage =
-                'Server error: ${e.response?.statusCode} - ${e.response?.data}';
-            break;
-          default:
-            errorMessage = 'Network error: ${e.message ?? e.toString()}';
-        }
-      }
-      _error = errorMessage;
+      _error = DioExceptions.handleError(e);
       _isLoading = false;
-      debugPrint('DioException occurred: $errorMessage');
-      debugPrint('Error details: ${e.toString()}');
       notifyListeners();
       return false;
     } catch (e) {
       _error = 'An unexpected error occurred: $e';
       _isLoading = false;
-      debugPrint('Unexpected error: $e');
       notifyListeners();
       return false;
     }
@@ -197,18 +158,8 @@ class PaymentProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      const url = 'http://10.0.2.2:3000/payments'; // For Android Emulator
-      // final url = 'http://localhost:3000/payments'; // For iOS Simulator
-      // final url = 'http://192.168.1.100:3000/payments'; // For physical device
-
-      final response = await _dio.get(
-        url,
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $_token',
-          },
-        ),
-      );
+      final url = '${ApiUrls.baseUrl}${ApiUrls.payments}';
+      final response = await _dioClient.dio.get(url);
 
       if (response.statusCode == 200) {
         _payments = List<PaymentModel>.from(response.data.map(
@@ -221,6 +172,10 @@ class PaymentProvider extends ChangeNotifier {
         _isLoading = false;
         notifyListeners();
       }
+    } on DioException catch (e) {
+      _error = DioExceptions.handleError(e);
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -234,19 +189,8 @@ class PaymentProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final url =
-          'http://10.0.2.2:3000/payments/$paymentId'; // For Android Emulator
-      // final url = 'http://localhost:3000/payments/$paymentId'; // For iOS Simulator
-      // final url = 'http://192.168.1.100:3000/payments/$paymentId'; // For physical device
-
-      final response = await _dio.delete(
-        url,
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $_token',
-          },
-        ),
-      );
+      final url = '${ApiUrls.baseUrl}${ApiUrls.paymentById(paymentId)}';
+      final response = await _dioClient.dio.delete(url);
 
       if (response.statusCode == 200) {
         _payments.removeWhere((payment) => payment.id == paymentId);
@@ -260,6 +204,11 @@ class PaymentProvider extends ChangeNotifier {
         notifyListeners();
         return false;
       }
+    } on DioException catch (e) {
+      _error = DioExceptions.handleError(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
