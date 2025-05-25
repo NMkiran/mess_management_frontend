@@ -1,15 +1,20 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mess_management/provider/expenses_provider.dart';
 import 'package:mess_management/providers/expense_provider.dart';
 import 'package:provider/provider.dart';
+
 import '../../../provider/attendance_provider.dart';
+
+import '../../../provider/expense_provider.dart';
+
 import '../../../provider/member_provider.dart';
 import '../../../provider/payment_provider.dart';
 import '../../../theme/app_colors.dart';
-import 'add_member_dialog.dart';
 import 'add_expense_dialog.dart';
+import 'add_member_dialog.dart';
 import 'add_payment_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -293,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => const AddMemberDialog(),
     );
-
+    print("result $result");
     if (result != null && context.mounted) {
       final provider = context.read<MemberProvider>();
       await provider.addMember(
@@ -345,21 +350,23 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => const AddPaymentDialog(),
     );
+    print("result $result");
 
     if (result != null && context.mounted) {
       final provider = context.read<PaymentProvider>();
+      print("result['name'] ${result['memberName']}");
       await provider.addPayment(
-        name: result['name']!,
-        type: result['type']!,
-        amount: result['amount']!,
-        description: result['description']!,
-        category: result['category']!,
-        subCategory: result['subCategory']!,
-        upiSubType: result['upiSubType']!,
-        imageUrl: result['imageUrl']!,
-        paymentMethod: result['paymentMethod']!,
+        name: result['memberName'] ?? '',
+        type: result['type'] ?? '',
+        amount: result['amount'] ?? 0,
+        description: result['description'] ?? '',
+        category: result['category'] ?? '',
+        subCategory: result['subCategory'] ?? '',
+        upiSubType: result['upiSubType'] ?? '',
+        imageUrl: result['imageUrl'] ?? '',
+        paymentMethod: result['paymentMethod'].toUpperCase(),
       );
-
+      print("result['name'] ${result['memberName']}");
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 
-// Tab screens
-import 'home/home_screen.dart';
 import 'attendance/attendance_screen.dart';
 import 'history/history_screen.dart';
-import 'profile/profile_screen.dart';
+// Tab screens
+import 'home/home_screen.dart';
 import 'members/members_screen.dart';
+import 'profile/profile_screen.dart';
 
 class MainSectionProvider extends ChangeNotifier {
   static const String _boxName = 'mainSection';
   static const String _currentIndexKey = 'currentIndex';
 
-  late final Box _box;
+  Box? _box;
   int _currentIndex = 0;
 
   MainSectionProvider() {
@@ -21,16 +21,26 @@ class MainSectionProvider extends ChangeNotifier {
   }
 
   Future<void> _initHive() async {
-    _box = await Hive.openBox(_boxName);
-    _currentIndex = _box.get(_currentIndexKey, defaultValue: 0);
-    notifyListeners();
+    try {
+      _box = await Hive.openBox(_boxName);
+      _currentIndex = _box?.get(_currentIndexKey, defaultValue: 0) ?? 0;
+      notifyListeners();
+    } catch (e) {
+      print('Error initializing Hive: $e');
+      // Default to index 0 if there's an error
+      _currentIndex = 0;
+    }
   }
 
   int get currentIndex => _currentIndex;
 
   void setIndex(int index) {
     _currentIndex = index;
-    _box.put(_currentIndexKey, index);
+    try {
+      _box?.put(_currentIndexKey, index);
+    } catch (e) {
+      print('Error saving index to Hive: $e');
+    }
     notifyListeners();
   }
 }
@@ -49,6 +59,8 @@ class MainSection extends StatelessWidget {
               HomeScreen(),
               AttendanceScreen(),
               MembersScreen(),
+              // MemberProfileScreen(),
+
               HistoryScreen(),
               ProfileScreen(),
             ],

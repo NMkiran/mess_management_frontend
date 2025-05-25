@@ -1,10 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:dio/dio.dart';
+
+import 'package:mess_management/dio/api_urls.dart';
+import 'package:mess_management/dio/dio_client.dart';
+import 'package:mess_management/utilities/global_variable.dart';
+
 import '../models/payment_model.dart';
-import '../dio/dio_client.dart';
-import '../dio/dio_exceptions.dart';
-import '../dio/api_urls.dart';
 
 class PaymentProvider extends ChangeNotifier {
   static const String _boxName = 'payments';
@@ -68,16 +70,15 @@ class PaymentProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
+    print("object");
     try {
-      if (_token == null || _token!.isEmpty) {
+      if (globalToken.isEmpty) {
         _error = 'Authentication token is missing. Please log in again.';
         _isLoading = false;
         notifyListeners();
         return false;
       }
 
-      final url = '${ApiUrls.baseUrl}${ApiUrls.payments}';
 
       // Validate input data
       if (amount <= 0) {
@@ -93,7 +94,6 @@ class PaymentProvider extends ChangeNotifier {
         notifyListeners();
         return false;
       }
-
       final requestData = {
         "name": name.trim(),
         "type": type,
@@ -102,18 +102,27 @@ class PaymentProvider extends ChangeNotifier {
         "category": category.trim(),
         "subCategory": subCategory.trim(),
         "paymentMethod": paymentMethod,
-        "upiSubType": upiSubType,
         "imageUrl": imageUrl.trim(),
       };
 
-      final response = await _dioClient.dio.post(
-        url,
-        data: requestData,
-      );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      // Add upiSubType only for UPI payments
+      if (paymentMethod == 'UPI') {
+        requestData['upiSubType'] = upiSubType;
+      }
+      print("Request data: $requestData");
+      Map response = await dio(
+        endPoint: ApiUrls().addPayment,
+        method: 'POST',
+        body: requestData,
+
+      );
+      print('Response: $response');
+
+      if (response['statusCode'] == 200 || response['statusCode'] == 201) {
+
         final payment =
-            PaymentModel.fromJson(Map<String, dynamic>.from(response.data));
+            PaymentModel.fromJson(Map<String, dynamic>.from(response['data']));
         _payments.add(payment);
         _calculateTotal();
         _isLoading = false;
@@ -121,8 +130,8 @@ class PaymentProvider extends ChangeNotifier {
         return true;
       } else {
         final errorMessage =
-            response.data['message'] ?? 'Failed to add payment';
-        final errorDetails = response.data['details'] ?? '';
+            response['data']['message'] ?? 'Failed to add payment';
+        final errorDetails = response['data']['details'] ?? '';
         _error = errorDetails.isNotEmpty
             ? '$errorMessage: $errorDetails'
             : errorMessage;

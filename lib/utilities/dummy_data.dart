@@ -1,52 +1,51 @@
-import '../models/expense_model.dart';
-import '../models/member_model.dart';
 import '../models/attendance_record_model.dart';
+import '../models/expense_model.dart';
 
 class DummyData {
-  static List<MemberModel> getSampleMembers() {
-    return [
-      MemberModel(
-        id: 'mem1',
-        name: 'John Doe',
-        roomNumber: 'A101',
-        phoneNumber: '+91 9876543210',
-        email: 'john.doe@example.com',
-        joiningDate: DateTime.now().subtract(const Duration(days: 60)),
-      ),
-      MemberModel(
-        id: 'mem2',
-        name: 'Jane Smith',
-        roomNumber: 'A102',
-        phoneNumber: '+91 9876543211',
-        email: 'jane.smith@example.com',
-        joiningDate: DateTime.now().subtract(const Duration(days: 55)),
-      ),
-      MemberModel(
-        id: 'mem3',
-        name: 'Mike Johnson',
-        roomNumber: 'B201',
-        phoneNumber: '+91 9876543212',
-        email: 'mike.johnson@example.com',
-        joiningDate: DateTime.now().subtract(const Duration(days: 45)),
-      ),
-      MemberModel(
-        id: 'mem4',
-        name: 'Sarah Williams',
-        roomNumber: 'B202',
-        phoneNumber: '+91 9876543213',
-        email: 'sarah.williams@example.com',
-        joiningDate: DateTime.now().subtract(const Duration(days: 40)),
-      ),
-      MemberModel(
-        id: 'mem5',
-        name: 'David Brown',
-        roomNumber: 'C301',
-        phoneNumber: '+91 9876543214',
-        email: 'david.brown@example.com',
-        joiningDate: DateTime.now().subtract(const Duration(days: 30)),
-      ),
-    ];
-  }
+  // static List<MemberModel> getSampleMembers() {
+  //   return [
+  //     MemberModel(
+  //       id: 'mem1',
+  //       name: 'John Doe',
+  //       roomNumber: 'A101',
+  //       phoneNumber: '+91 9876543210',
+  //       email: 'john.doe@example.com',
+  //       joiningDate: DateTime.now().subtract(const Duration(days: 60)),
+  //     ),
+  //     MemberModel(
+  //       id: 'mem2',
+  //       name: 'Jane Smith',
+  //       roomNumber: 'A102',
+  //       phoneNumber: '+91 9876543211',
+  //       email: 'jane.smith@example.com',
+  //       joiningDate: DateTime.now().subtract(const Duration(days: 55)),
+  //     ),
+  //     MemberModel(
+  //       id: 'mem3',
+  //       name: 'Mike Johnson',
+  //       roomNumber: 'B201',
+  //       phoneNumber: '+91 9876543212',
+  //       email: 'mike.johnson@example.com',
+  //       joiningDate: DateTime.now().subtract(const Duration(days: 45)),
+  //     ),
+  //     MemberModel(
+  //       id: 'mem4',
+  //       name: 'Sarah Williams',
+  //       roomNumber: 'B202',
+  //       phoneNumber: '+91 9876543213',
+  //       email: 'sarah.williams@example.com',
+  //       joiningDate: DateTime.now().subtract(const Duration(days: 40)),
+  //     ),
+  //     MemberModel(
+  //       id: 'mem5',
+  //       name: 'David Brown',
+  //       roomNumber: 'C301',
+  //       phoneNumber: '+91 9876543214',
+  //       email: 'david.brown@example.com',
+  //       joiningDate: DateTime.now().subtract(const Duration(days: 30)),
+  //     ),
+  //   ];
+  // }
 
   static List<AttendanceRecordModel> getSampleAttendanceRecords() {
     final today = DateTime.now();
@@ -154,7 +153,7 @@ class DummyData {
   //       id: '1',
   //       amount: 3500.00,
   //       date: DateTime.now().subtract(const Duration(days: 6)),
-     
+
   //       description: 'Monthly Mess Fee',
   //     ),
   //     PaymentModel(

@@ -4,8 +4,11 @@ class MemberModel {
   final String roomNumber;
   final String phoneNumber;
   final String email;
+  final String pic;
+  final String aadharCard;
+  final String address;
   final bool isActive;
-  final DateTime joiningDate;
+  final DateTime createdAt;
 
   MemberModel({
     required this.id,
@@ -13,8 +16,11 @@ class MemberModel {
     required this.roomNumber,
     required this.phoneNumber,
     required this.email,
+    this.pic = "",
+    this.aadharCard = "",
+    this.address = "",
     this.isActive = true,
-    required this.joiningDate,
+    required this.createdAt,
   });
 
   Map<String, dynamic> toJson() {
@@ -24,20 +30,26 @@ class MemberModel {
       'roomNumber': roomNumber,
       'phoneNumber': phoneNumber,
       'email': email,
+      'pic': pic,
+      'aadharCard': aadharCard,
+      'address': address,
       'isActive': isActive,
-      'joiningDate': joiningDate.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 
   factory MemberModel.fromJson(Map<String, dynamic> json) {
     return MemberModel(
-      id: json['id'],
+      id: json['_id'], // Note: API returns _id instead of id
       name: json['name'],
       roomNumber: json['roomNumber'],
       phoneNumber: json['phoneNumber'],
       email: json['email'],
+      pic: json['pic'] ?? "",
+      aadharCard: json['aadharCard'] ?? "",
+      address: json['address'] ?? "",
       isActive: json['isActive'] ?? true,
-      joiningDate: DateTime.parse(json['joiningDate']),
+      createdAt: DateTime.parse(json['createdAt']),
     );
   }
 }

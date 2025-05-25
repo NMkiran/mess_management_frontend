@@ -100,6 +100,16 @@ class Expense {
       addedBy: addedBy ?? this.addedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+
+  factory ExpenseModel.fromJson(Map<String, dynamic> json) {
+    return ExpenseModel(
+      id: json['id'] ?? '',
+      description: json['description'] ?? '',
+      amount: json['amount'] ?? 0.0,
+      date: DateTime.parse(json['date'] ?? DateTime.now().toIso8601String()),
+      category: json['category'] ?? '',
+      subCategory: json['subCategory'] ?? '',
+
     );
   }
 }

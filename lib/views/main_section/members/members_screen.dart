@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+
+import '../../../models/member_model.dart';
 import '../../../provider/member_provider.dart';
 import '../../../theme/app_colors.dart';
-import '../../../models/member_model.dart';
 import 'member_profile_screen.dart';
 
-class MembersScreen extends StatelessWidget {
+class MembersScreen extends StatefulWidget {
   const MembersScreen({Key? key}) : super(key: key);
+
+  @override
+  State<MembersScreen> createState() => _MembersScreenState();
+}
+
+class _MembersScreenState extends State<MembersScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch members when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MemberProvider>().fetchMembers();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +157,8 @@ class MembersScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Joined: ${DateFormat('MMM d, yyyy').format(member.joiningDate)}',
+                "",
+                // 'Joined: ${DateFormat('MMM d, yyyy').format(member.)}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.grey,
                     ),
@@ -171,8 +186,6 @@ class MembersScreen extends StatelessWidget {
       ],
     );
   }
-
-
 
   Future<void> _showAddMemberDialog(BuildContext context) async {
     final formKey = GlobalKey<FormState>();

@@ -37,4 +37,5 @@ class ApiUrls {
   // Attendance endpoints
   static const String attendance = '/attendance';
   static String attendanceById(String id) => '/attendance/$id';
+
 }

@@ -46,15 +46,19 @@ class PaymentModel {
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       type: json['type'] ?? '',
+
       amount: (json['amount'] ?? 0).toDouble(),
+
       description: json['description'] ?? '',
       category: json['category'] ?? '',
       subCategory: json['subCategory'] ?? '',
       paymentMethod: json['paymentMethod'] ?? '',
       upiSubType: json['upiSubType'] ?? '',
       imageUrl: json['imageUrl'] ?? '',
+
       date:
           json['date'] != null ? DateTime.parse(json['date']) : DateTime.now(),
+
     );
   }
 }
