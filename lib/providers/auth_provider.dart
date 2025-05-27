@@ -73,8 +73,6 @@ class AuthProvider with ChangeNotifier {
           if (context.mounted) {
             Provider.of<MemberProvider>(context, listen: false)
                 .setToken(_token!);
-            Provider.of<ExpenseProvider>(context, listen: false)
-                .setToken(_token!);
           }
           _isLoading = false;
           debugPrint('Login successful, token received');

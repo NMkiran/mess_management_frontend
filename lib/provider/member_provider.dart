@@ -43,7 +43,7 @@ class MemberProvider extends ChangeNotifier {
 
     try {
       final response =
-          await dio(method: 'POST', endPoint: ApiUrls().addMember, body: {
+          await dio(method: 'POST', endPoint: ApiUrls.addMember, body: {
         "name": name,
         "roomNumber": roomNumber,
         "phoneNumber": phoneNumber,
@@ -115,7 +115,7 @@ class MemberProvider extends ChangeNotifier {
     try {
       final response = await dio(
         method: 'GET',
-        endPoint: ApiUrls().getMembers,
+        endPoint: ApiUrls.getMembers,
       );
       // print("Response data: ${response['data']['data']}");
 

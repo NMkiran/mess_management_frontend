@@ -14,8 +14,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _usernameController = TextEditingController(text: 'madhuk');
+  final _passwordController = TextEditingController(text: 'madhu123');
   bool _obscurePassword = true;
 
   Future<void> _handleLogin() async {
@@ -109,12 +109,20 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _usernameController,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                     decoration: InputDecoration(
                       labelText: 'Username',
                       prefixIcon: const Icon(Icons.person),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface,
+                      labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
+                      prefixIconColor: Theme.of(context).colorScheme.onSurface,
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -127,6 +135,9 @@ class _LoginPageState extends State<LoginPage> {
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                     decoration: InputDecoration(
                       labelText: 'Password',
                       prefixIcon: const Icon(Icons.lock),
@@ -135,6 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                           _obscurePassword
                               ? Icons.visibility
                               : Icons.visibility_off,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         onPressed: () {
                           setState(() {
@@ -145,6 +157,12 @@ class _LoginPageState extends State<LoginPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      // Add these lines for better theme integration
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface,
+                      labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
+                      prefixIconColor: Theme.of(context).colorScheme.onSurface,
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {

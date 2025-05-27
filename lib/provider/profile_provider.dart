@@ -50,7 +50,7 @@ class ProfileProvider extends ChangeNotifier {
       final response = await dio(
         method: 'GET',
         // Use GET /users to fetch all users, then filter by ID
-        endPoint: ApiUrls().getProfile,
+        endPoint: ApiUrls.getMembers,
         headers: {
           'Authorization': 'Bearer $globalToken',
         },
@@ -112,7 +112,7 @@ class ProfileProvider extends ChangeNotifier {
     try {
       final response = await dio(
         method: 'PUT',
-        endPoint: '${ApiUrls().getProfile}/$_userId',
+        endPoint: '${ApiUrls.getMembers}/$_userId',
         body: {
           if (name != null) 'name': name,
           if (email != null) 'email': email,

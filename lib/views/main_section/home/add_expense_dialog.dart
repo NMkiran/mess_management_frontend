@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mess_management/provider/expenses_provider.dart';
 import 'package:provider/provider.dart';
+import '../../../providers/expense_provider.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   const AddExpenseDialog({Key? key}) : super(key: key);
@@ -13,15 +13,15 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
   final _amountController = TextEditingController();
-  String _selectedCategory = 'Food';
-  String _selectedSubCategory = '';
+  String _selectedCategory = 'utilities';
+  String _selectedSubCategory = 'utils';
 
   final Map<String, List<String>> _categorySubCategories = {
-    'Food': ['Groceries', 'Vegetables', 'Fruits', 'Meat', 'Dairy', 'Other'],
-    'Utilities': ['Electricity', 'Water', 'Gas', 'Internet', 'Other'],
-    'Maintenance': ['Cleaning', 'Repairs', 'Equipment', 'Other'],
-    'Staff': ['Salary', 'Bonus', 'Benefits', 'Other'],
-    'Other': ['Miscellaneous']
+    'utilities': ['utils', 'electricity', 'water', 'gas', 'internet', 'other'],
+    'food': ['groceries', 'vegetables', 'fruits', 'meat', 'dairy', 'other'],
+    'maintenance': ['cleaning', 'repairs', 'equipment', 'other'],
+    'staff': ['salary', 'bonus', 'benefits', 'other'],
+    'other': ['miscellaneous']
   };
 
   @override
@@ -52,11 +52,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 decoration: const InputDecoration(
                   labelText: 'Category',
                   prefixIcon: Icon(Icons.category),
+                  border: OutlineInputBorder(),
                 ),
                 items: _categorySubCategories.keys.map((String category) {
                   return DropdownMenuItem<String>(
                     value: category,
-                    child: Text(category),
+                    child: Text(category.toUpperCase()),
                   );
                 }).toList(),
                 onChanged: (String? value) {
@@ -74,12 +75,13 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 decoration: const InputDecoration(
                   labelText: 'Sub Category',
                   prefixIcon: Icon(Icons.subdirectory_arrow_right),
+                  border: OutlineInputBorder(),
                 ),
                 items: _categorySubCategories[_selectedCategory]!
                     .map((String subCategory) {
                   return DropdownMenuItem<String>(
                     value: subCategory,
-                    child: Text(subCategory),
+                    child: Text(subCategory.toUpperCase()),
                   );
                 }).toList(),
                 onChanged: (String? value) {
@@ -96,6 +98,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 decoration: const InputDecoration(
                   labelText: 'Description',
                   prefixIcon: Icon(Icons.description),
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -108,8 +111,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               TextFormField(
                 controller: _amountController,
                 decoration: const InputDecoration(
-                  labelText: 'Amount (₹)',
+                  labelText: 'Amount',
                   prefixIcon: Icon(Icons.currency_rupee),
+                  border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -132,43 +136,52 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: () async {
-            if (_formKey.currentState!.validate()) {
-              final expenseProvider =
-                  Provider.of<ExpensesProvider>(context, listen: false);
-              final success = await expenseProvider.addExpense(
-                name: 'Expense',
-                type: 'expense',
-                paymentMethod: 'Cash',
-                upiSubType: 'Cash',
-                category: _selectedCategory.toLowerCase(),
-                subCategory: _selectedSubCategory,
-                description: _descriptionController.text,
-                amount: double.parse(_amountController.text),
-              );
+        Consumer<ExpenseProvider>(
+          builder: (context, expenseProvider, child) {
+            return ElevatedButton(
+              onPressed: expenseProvider.isLoading
+                  ? null
+                  : () async {
+                      if (_formKey.currentState!.validate()) {
+                        final success = await expenseProvider.addExpense(
+                          category: _selectedCategory,
+                          description: _descriptionController.text,
+                          amount: double.parse(_amountController.text),
+                          subCategory: _selectedSubCategory,
+                        );
 
-              if (success && context.mounted) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Expense added successfully'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              } else if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      expenseProvider.error ?? 'Failed to add expense',
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            }
+                        if (success && context.mounted) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Expense added successfully'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                expenseProvider.error ??
+                                    'Failed to add expense',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: expenseProvider.isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text('Add Expense'),
+            );
           },
-          child: const Text('Add Expense'),
         ),
       ],
     );

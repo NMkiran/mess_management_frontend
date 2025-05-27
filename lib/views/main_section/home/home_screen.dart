@@ -8,8 +8,6 @@ import 'package:provider/provider.dart';
 
 import '../../../provider/attendance_provider.dart';
 
-import '../../../provider/expense_provider.dart';
-
 import '../../../provider/member_provider.dart';
 import '../../../provider/payment_provider.dart';
 import '../../../theme/app_colors.dart';

@@ -197,6 +197,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     final memberProvider = context.read<MemberProvider>();
     final activeMembers = memberProvider.activeMembers;
 
+    // Get current meal period
+    final currentMeal = attendanceProvider.getCurrentMealPeriod();
+    final isMealTime = attendanceProvider.isMealTimeValid(currentMeal);
+
+    if (!isMealTime) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Attendance can only be marked during meal times'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     // Show a dialog to select member and meals
     final Map<String, dynamic>? result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -204,10 +218,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       builder: (context) {
         String? selectedMemberId;
         final Map<String, bool> selectedMeals = {
-          'breakfast': true,
-          'lunch': true,
-          'dinner': true,
+          'breakfast': false,
+          'lunch': false,
+          'dinner': false,
         };
+        selectedMeals[currentMeal] =
+            true; // Set current meal to true by default
 
         return StatefulBuilder(
           builder: (context, setState) {
@@ -239,15 +255,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           onChanged: (value) {
                             setState(() {
                               selectedMemberId = value;
-                              if (value != null) {
-                                // Update meal checkboxes based on already marked attendance
-                                selectedMeals['breakfast'] = !attendanceProvider
-                                    .isAttendanceMarked(value, 'breakfast');
-                                selectedMeals['lunch'] = !attendanceProvider
-                                    .isAttendanceMarked(value, 'lunch');
-                                selectedMeals['dinner'] = !attendanceProvider
-                                    .isAttendanceMarked(value, 'dinner');
-                              }
                             });
                           },
                         ),
@@ -255,89 +262,27 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     ),
                     if (selectedMemberId != null) ...[
                       const SizedBox(height: 16),
-                      const Text('Select Meals:'),
+                      const Text('Current Meal:'),
                       const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildMealCheckbox(
-                            'Breakfast\n(7:00-10:00)',
-                            selectedMeals['breakfast']!,
-                            (value) {
-                              setState(() {
-                                selectedMeals['breakfast'] = value!;
-                              });
-                            },
-                            enabled: attendanceProvider
-                                    .isMealTimeValid('breakfast') &&
-                                !attendanceProvider.isAttendanceMarked(
-                                    selectedMemberId!, 'breakfast'),
-                            isMarked: attendanceProvider.isAttendanceMarked(
-                                selectedMemberId!, 'breakfast'),
-                            isMissed: !attendanceProvider
-                                    .isMealTimeValid('breakfast') &&
-                                !attendanceProvider.isAttendanceMarked(
-                                    selectedMemberId!, 'breakfast'),
-                          ),
-                          _buildMealCheckbox(
-                            'Lunch\n(12:00-15:00)',
-                            selectedMeals['lunch']!,
-                            (value) {
-                              setState(() {
-                                selectedMeals['lunch'] = value!;
-                              });
-                            },
-                            enabled:
-                                attendanceProvider.isMealTimeValid('lunch') &&
-                                    !attendanceProvider.isAttendanceMarked(
-                                        selectedMemberId!, 'lunch'),
-                            isMarked: attendanceProvider.isAttendanceMarked(
-                                selectedMemberId!, 'lunch'),
-                            isMissed:
-                                !attendanceProvider.isMealTimeValid('lunch') &&
-                                    !attendanceProvider.isAttendanceMarked(
-                                        selectedMemberId!, 'lunch'),
-                          ),
-                          _buildMealCheckbox(
-                            'Dinner\n(19:00-23:00)',
-                            selectedMeals['dinner']!,
-                            (value) {
-                              setState(() {
-                                selectedMeals['dinner'] = value!;
-                              });
-                            },
-                            enabled:
-                                attendanceProvider.isMealTimeValid('dinner') &&
-                                    !attendanceProvider.isAttendanceMarked(
-                                        selectedMemberId!, 'dinner'),
-                            isMarked: attendanceProvider.isAttendanceMarked(
-                                selectedMemberId!, 'dinner'),
-                            isMissed:
-                                !attendanceProvider.isMealTimeValid('dinner') &&
-                                    !attendanceProvider.isAttendanceMarked(
-                                        selectedMemberId!, 'dinner'),
-                          ),
-                        ],
+                      _buildMealCheckbox(
+                        '${currentMeal.toUpperCase()}\n(${_getMealTimeRange(currentMeal)})',
+                        selectedMeals[currentMeal]!,
+                        (value) {
+                          setState(() {
+                            selectedMeals[currentMeal] = value!;
+                          });
+                        },
+                        enabled: !attendanceProvider.isAttendanceMarked(
+                            selectedMemberId!, currentMeal),
+                        isMarked: attendanceProvider.isAttendanceMarked(
+                            selectedMemberId!, currentMeal),
+                        isMissed: false,
                       ),
                       const SizedBox(height: 16),
-                      if (!attendanceProvider.isMealTimeValid('breakfast') ||
-                          !attendanceProvider.isMealTimeValid('lunch') ||
-                          !attendanceProvider.isMealTimeValid('dinner'))
-                        Text(
-                          'Note: You can only mark attendance during meal times',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.error,
-                                  ),
-                        ),
                       if (attendanceProvider.isAttendanceMarked(
-                              selectedMemberId, 'breakfast') ||
-                          attendanceProvider.isAttendanceMarked(
-                              selectedMemberId, 'lunch') ||
-                          attendanceProvider.isAttendanceMarked(
-                              selectedMemberId, 'dinner'))
+                          selectedMemberId, currentMeal))
                         Text(
-                          'Note: Already marked meals cannot be changed',
+                          'Note: Attendance already marked for this meal',
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.error,
@@ -382,7 +327,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           (member) => member.id == result['memberId'],
         );
 
-        // Mark attendance for the selected member and meals
+        // Mark attendance for the selected member and current meal
         await attendanceProvider.markAttendance(
           memberId: selectedMember.id,
           memberName: selectedMember.name,
@@ -401,6 +346,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           );
         }
       }
+    }
+  }
+
+  String _getMealTimeRange(String meal) {
+    switch (meal.toLowerCase()) {
+      case 'breakfast':
+        return '7:00-10:00';
+      case 'lunch':
+        return '12:00-15:00';
+      case 'dinner':
+        return '19:00-23:00';
+      default:
+        return '';
     }
   }
 

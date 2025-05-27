@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:mess_management/dio/api_urls.dart';
 import 'package:mess_management/dio/dio_client.dart';
+import 'package:mess_management/dio/dio_exceptions.dart';
 import 'package:mess_management/utilities/global_variable.dart';
 
 import '../models/payment_model.dart';
@@ -79,7 +80,6 @@ class PaymentProvider extends ChangeNotifier {
         return false;
       }
 
-
       // Validate input data
       if (amount <= 0) {
         _error = 'Amount must be greater than 0';
@@ -105,22 +105,19 @@ class PaymentProvider extends ChangeNotifier {
         "imageUrl": imageUrl.trim(),
       };
 
-
       // Add upiSubType only for UPI payments
       if (paymentMethod == 'UPI') {
         requestData['upiSubType'] = upiSubType;
       }
       print("Request data: $requestData");
       Map response = await dio(
-        endPoint: ApiUrls().addPayment,
+        endPoint: ApiUrls.addPayment,
         method: 'POST',
         body: requestData,
-
       );
       print('Response: $response');
 
       if (response['statusCode'] == 200 || response['statusCode'] == 201) {
-
         final payment =
             PaymentModel.fromJson(Map<String, dynamic>.from(response['data']));
         _payments.add(payment);
@@ -158,7 +155,7 @@ class PaymentProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final url = '${ApiUrls.baseUrl}${ApiUrls.payments}';
+      const url = '${ApiUrls.baseUrl}${ApiUrls.addPayment}';
       final response = await _dioClient.dio.get(url);
 
       if (response.statusCode == 200) {

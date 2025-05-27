@@ -18,11 +18,6 @@ class ExpensesProvider extends ChangeNotifier {
   List<ExpensesModel> get expenses => _expenses;
   double get totalExpenses => _totalExpenses;
 
-  // void setToken(String token) {
-  //   _token = token;
-  //   _dioClient.setAuthToken(token);
-  // }
-
   Future<bool> addExpense({
     required String name,
     required String type,
@@ -39,14 +34,14 @@ class ExpensesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (globalToken == null || globalToken!.isEmpty) {
+      if (globalToken.isEmpty) {
         _error = 'Authentication token is missing. Please log in again.';
         _isLoading = false;
         notifyListeners();
         return false;
       }
 
-      final url = '${ApiUrls.baseUrl}${ApiUrls.payments}';
+      const url = '${ApiUrls.baseUrl}${ApiUrls.addPayment}';
 
       // Validate input data
       if (amount <= 0) {
@@ -118,7 +113,7 @@ class ExpensesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final url = '${ApiUrls.baseUrl}${ApiUrls.payments}';
+      const url = '${ApiUrls.baseUrl}${ApiUrls.addPayment}';
       final response = await _dioClient.dio.get(url);
 
       if (response.statusCode == 200) {

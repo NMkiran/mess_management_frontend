@@ -19,12 +19,13 @@ class ApiUrls {
   static const String logout = '/auth/logout';
 
   // Payment endpoints
-  static const String payments = '/payments';
+  static const String addPayment = '/payments';
   static String paymentById(String id) => '/payments/$id';
 
   // Member endpoints
-  static const String members = '/members';
+  static const String addMember = '/members';
   static String memberById(String id) => '/members/$id';
+  static const String getMembers = '/members';
 
   // Mess endpoints
   static const String mess = '/mess';
@@ -38,4 +39,11 @@ class ApiUrls {
   static const String attendance = '/attendance';
   static String attendanceById(String id) => '/attendance/$id';
 
+  // History endpoints
+  static const String history = '/history';
+  static const String historySummary = '/history/summary';
+  static String historyById(String id) => '/history/$id';
+
+  // Expense endpoints
+  static const String addExpenses = '/expenses';
 }

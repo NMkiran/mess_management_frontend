@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mess_management/provider/expense_provider.dart';
+import 'package:mess_management/provider/expenses_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../provider/payment_provider.dart';
+import '../../../provider/history_provider.dart';
 import '../../../models/payment_model.dart';
 import '../../../theme/app_colors.dart';
 
@@ -17,9 +18,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final _searchController = TextEditingController();
   String _selectedFilter = 'All';
   String _selectedTimeRange = 'All';
+  final _refreshKey = GlobalKey<RefreshIndicatorState>();
 
   final List<String> _filters = ['All', 'Payments', 'Expenses'];
   final List<String> _timeRanges = ['All', 'Today', 'This Month', 'Last Month'];
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch history summary when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
+  }
+
+  Future<void> _refreshData() async {
+    final historyProvider = context.read<HistoryProvider>();
+    final paymentProvider = context.read<PaymentProvider>();
+    final expensesProvider = context.read<ExpensesProvider>();
+
+    // Fetch all data in parallel
+    await Future.wait([
+      historyProvider.fetchHistorySummary(),
+      paymentProvider.fetchPayments(),
+      expensesProvider.fetchExpenses(),
+    ]);
+  }
 
   @override
   void dispose() {
@@ -74,7 +98,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   List<dynamic> _getFilteredItems(BuildContext context) {
     final payments = context.watch<PaymentProvider>().payments;
-    final expenses = context.watch<ExpenseProvider>().expenses;
+    final expenses = context.watch<ExpensesProvider>().expenses;
 
     List<dynamic> items = [];
 
@@ -101,163 +125,222 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('History'),
-      ),
-      body: Column(
-        children: [
-          _buildSummaryCard(context),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _searchController,
-                  decoration: const InputDecoration(
-                    hintText: 'Search by name, description or category...',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (_) => setState(() {}),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedFilter,
-                        decoration: const InputDecoration(
-                          labelText: 'Filter',
-                          border: OutlineInputBorder(),
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                        ),
-                        items: _filters.map((filter) {
-                          return DropdownMenuItem(
-                            value: filter,
-                            child: Text(filter),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() {
-                              _selectedFilter = value;
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedTimeRange,
-                        decoration: const InputDecoration(
-                          labelText: 'Time Range',
-                          border: OutlineInputBorder(),
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                        ),
-                        items: _timeRanges.map((range) {
-                          return DropdownMenuItem(
-                            value: range,
-                            child: Text(range),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() {
-                              _selectedTimeRange = value;
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Consumer2<PaymentProvider, ExpenseProvider>(
-              builder: (context, payments, expenses, _) {
-                final items = _getFilteredItems(context);
-
-                if (items.isEmpty) {
-                  return const Center(
-                    child: Text('No records found'),
-                  );
-                }
-
-                return ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    final bool isPayment = item is PaymentModel;
-
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              isPayment ? AppColors.success : AppColors.error,
-                          child: Icon(
-                            isPayment ? Icons.payments : Icons.receipt_long,
-                            color: Colors.white,
-                          ),
-                        ),
-                        title: Text(
-                          isPayment
-                              ? '${item.name} - ${item.description}'
-                              : '${item.category} - ${item.description}',
-                        ),
-                        subtitle: Text(_getRelativeDate(item.date)),
-                        trailing: Text(
-                          NumberFormat.currency(symbol: '₹')
-                              .format(item.amount),
-                          style: TextStyle(
-                            color:
-                                isPayment ? AppColors.success : AppColors.error,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => _refreshData(),
           ),
         ],
+      ),
+      body: RefreshIndicator(
+        key: _refreshKey,
+        onRefresh: _refreshData,
+        child: Column(
+          children: [
+            _buildSummaryCard(context),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    decoration: const InputDecoration(
+                      hintText: 'Search by name, description or category...',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedFilter,
+                          decoration: const InputDecoration(
+                            labelText: 'Filter',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 0),
+                          ),
+                          items: _filters.map((filter) {
+                            return DropdownMenuItem(
+                              value: filter,
+                              child: Text(filter),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _selectedFilter = value;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedTimeRange,
+                          decoration: const InputDecoration(
+                            labelText: 'Time Range',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 0),
+                          ),
+                          items: _timeRanges.map((range) {
+                            return DropdownMenuItem(
+                              value: range,
+                              child: Text(range),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _selectedTimeRange = value;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child:
+                  Consumer3<PaymentProvider, ExpensesProvider, HistoryProvider>(
+                builder: (context, payments, expenses, history, _) {
+                  final items = _getFilteredItems(context);
+
+                  if (items.isEmpty) {
+                    return const Center(
+                      child: Text('No records found'),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final bool isPayment = item is PaymentModel;
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor:
+                                isPayment ? AppColors.success : AppColors.error,
+                            child: Icon(
+                              isPayment ? Icons.payments : Icons.receipt_long,
+                              color: Colors.white,
+                            ),
+                          ),
+                          title: Text(
+                            isPayment
+                                ? item.name
+                                : '${item.category}${item.subCategory.isNotEmpty ? ' - ${item.subCategory}' : ''}',
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isPayment
+                                    ? item.description.isEmpty
+                                        ? 'No description'
+                                        : item.description
+                                    : item.description.isEmpty
+                                        ? 'No description'
+                                        : item.description,
+                              ),
+                              Text(
+                                _getRelativeDate(item.date),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                          trailing: Text(
+                            NumberFormat.currency(symbol: '₹')
+                                .format(item.amount),
+                            style: TextStyle(
+                              color: isPayment
+                                  ? AppColors.success
+                                  : AppColors.error,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSummaryCard(BuildContext context) {
-    return Consumer2<PaymentProvider, ExpenseProvider>(
-      builder: (context, payments, expenses, _) {
-        // Get today's totals
-        final now = DateTime.now();
-        final todayStart = DateTime(now.year, now.month, now.day);
-        final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    return Consumer<HistoryProvider>(
+      builder: (context, historyProvider, _) {
+        if (historyProvider.isLoading) {
+          return const Card(
+            margin: EdgeInsets.all(16),
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
 
-        // final todayExpenses = expenses
-        //     ?.getExpensesByDateRange(todayStart, todayEnd)
-        //     .fold(0.0, (sum, expense) => sum + expense.amount);
+        if (historyProvider.error != null) {
+          return Card(
+            margin: const EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Text(
+                    'Error: ${historyProvider.error}',
+                    style: const TextStyle(color: AppColors.error),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () => _refreshData(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
-        final todayPayments = payments
-            .getPaymentsByDateRange(todayStart, todayEnd)
-            .fold(0.0, (sum, payment) => sum + payment.amount);
-
-        // Get current month totals
-        final currentMonthStart = DateTime(now.year, now.month, 1);
-        final currentMonthEnd = DateTime(now.year, now.month + 1, 0);
-
-        // final currentMonthExpenses = expenses
-        //     .getExpensesByDateRange(currentMonthStart, currentMonthEnd)
-        //     .fold(0.0, (sum, expense) => sum + expense.amount);
-
-        final currentMonthPayments = payments.getCurrentMonthTotal();
+        final summary = historyProvider.summary;
+        if (summary == null) {
+          return Card(
+            margin: const EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  const Text('No summary data available'),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () => _refreshData(),
+                    child: const Text('Refresh'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
         return Card(
           margin: const EdgeInsets.all(16),
@@ -272,9 +355,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       child: _buildSummaryItem(
                         context,
                         label: 'Today',
-                        income: todayPayments,
-                        // expense: todayExpenses,
-                        expense: 0.0,
+                        income: summary.todayIncome,
+                        expense: summary.todayExpenses,
                       ),
                     ),
                     Container(
@@ -287,9 +369,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       child: _buildSummaryItem(
                         context,
                         label: 'This Month',
-                        income: currentMonthPayments,
-                        // expense: currentMonthExpenses,
-                        expense: 0.0,
+                        income: summary.thisMonthIncome,
+                        expense: summary.thisMonthExpenses,
                       ),
                     ),
                     Container(
@@ -302,9 +383,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       child: _buildSummaryItem(
                         context,
                         label: 'All Time',
-                        income: payments.totalPayments,
-                        // expense: expenses.totalExpenses,
-                        expense: 0.0,
+                        income: summary.allTimeIncome,
+                        expense: summary.allTimeExpenses,
                       ),
                     ),
                   ],
@@ -323,6 +403,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     required double income,
     required double expense,
   }) {
+    final balance = income - expense;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -351,11 +432,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
         const Divider(),
         Text(
-          'Balance: ${NumberFormat.currency(symbol: '₹').format(income - expense)}',
+          'Balance: ${NumberFormat.currency(symbol: '₹').format(balance)}',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color:
-                    income - expense >= 0 ? AppColors.success : AppColors.error,
+                color: balance >= 0 ? AppColors.success : AppColors.error,
               ),
           textAlign: TextAlign.center,
         ),
